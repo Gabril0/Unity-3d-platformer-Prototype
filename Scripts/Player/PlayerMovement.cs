@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -11,6 +12,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float jumpSpeed;
     [SerializeField] Transform orientation;
     [SerializeField] float maxSpeed;
+    //[SerializeField] float crouchSpeed;
     //[SerializeField] float jumpCooldown;
 
     //base parameters needed
@@ -19,11 +21,15 @@ public class PlayerMovement : MonoBehaviour
 
     Vector3 direction;
 
-
+    private float crouchYScale, startYScale;
     //ground check parameters
     [SerializeField] float groundDrag;
     [SerializeField] LayerMask groundLayer;
     private float playerHeight;
+
+    //Slope Check
+    private float maxSlopeAngle = 50;
+    private RaycastHit slopeHit;
 
     //booleans
     private bool isGrounded;
@@ -34,6 +40,7 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
         playerHeight = rb.transform.localScale.y*2;
+        startYScale = transform.localScale.y;
     }
 
     void Update()
@@ -51,6 +58,15 @@ public class PlayerMovement : MonoBehaviour
             jump();
             //Invoke(() => { isJumpReady = true; }, jumpCooldown);
         }
+
+        if (Input.GetKeyDown(KeyCode.LeftControl)) {
+            crouch();
+        }
+
+        if (Input.GetKeyUp(KeyCode.LeftControl))
+        {
+            transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
+        }
     }
 
     private void move() {
@@ -65,7 +81,14 @@ public class PlayerMovement : MonoBehaviour
         if (!isGrounded) {
             rb.AddForce(direction.normalized * moveSpeed * 0.4f, ForceMode.Force);
         }
+        if (onSlope()) {
+            rb.AddForce(getSlopeMoveDirection() * moveSpeed, ForceMode.Force);
+            if (rb.velocity.y > 0) {
+                rb.AddForce(Vector3.down, ForceMode.Force);
+            }
+        }
         
+        rb.useGravity = !onSlope();
     }
 
     private void groundCheck() {
@@ -81,9 +104,20 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private void speedLimiter() {
-        if (rb.velocity.magnitude > maxSpeed) {
-            rb.velocity = rb.velocity.normalized * maxSpeed;
+        if (onSlope())
+        {
+            if (rb.velocity.magnitude > moveSpeed)
+            {
+                rb.velocity = rb.velocity.normalized * moveSpeed;
+            }
         }
+        else {
+            if (rb.velocity.magnitude > maxSpeed)
+            {
+                rb.velocity = rb.velocity.normalized * maxSpeed;
+            }
+        }
+        
     }
     private void jump() {
 
@@ -93,5 +127,20 @@ public class PlayerMovement : MonoBehaviour
         
     }
 
+    private void crouch() {
+        transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
+        rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
+    }
 
+    private bool onSlope() {
+        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, playerHeight * 0.5f + 0.3f)) {
+            float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+            return angle < maxSlopeAngle && angle != 0;
+        }
+        return false;
+    }
+
+    private Vector3 getSlopeMoveDirection() {
+        return Vector3.ProjectOnPlane(direction, slopeHit.normal).normalized;
+    }
 }
