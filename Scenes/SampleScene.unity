@@ -2461,7 +2461,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1884287941}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 637d2c9d311339e4095f027dc1630c46, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -2586,7 +2586,6 @@ MonoBehaviour:
   moveSpeed: 20
   jumpSpeed: 10
   orientation: {fileID: 1161008073}
-  maxSpeed: 10
   groundDrag: 5
   groundLayer:
     serializedVersion: 2
