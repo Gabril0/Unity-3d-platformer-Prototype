@@ -20,7 +20,7 @@ public class PlayerMovement : MonoBehaviour
 
     Vector3 direction;
 
-    private float crouchYScale, startYScale;
+    
 
     //ground check parameters
     [SerializeField] float groundDrag;
@@ -36,9 +36,15 @@ public class PlayerMovement : MonoBehaviour
     private float originalMoveSpeed;
     private float bunnyHopBuffer = 0.5f;
 
+    //Crouch
+    private float crouchYScale, startYScale;
+    private float timeStartedCrouching;
+    private bool crouchSpeedExtender = true; //to help with bunny hops extension
+    private float speedExtenderBuffer = 1.5f;
+
     //booleans
     private bool isGrounded;
-    private bool isJumpReady;
+    //private bool isJumpReady;
     private bool isCrounching;
     private bool justTouchedGround = false;
 
@@ -53,8 +59,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        Debug.Log(rb.velocity.y);
-        //Debug.Log(Time.time < timeTouchedGround + bunnyHopBuffer);
+        //Debug.Log(Time.time > timeStartedCrouching + speedExtenderBuffer);
         groundCheck();
         move();
         
@@ -66,26 +71,34 @@ public class PlayerMovement : MonoBehaviour
 
         
         if (Input.GetKey(KeyCode.Space) && isGrounded) {  //&& isJumpReady) {
-            isJumpReady = false;
-            if (Time.time < timeTouchedGround + bunnyHopBuffer)
-            {
-               if(moveSpeed < originalMoveSpeed * 2.5f) {
-                   moveSpeed += 2;
+            
+            if (Time.time < timeTouchedGround + bunnyHopBuffer){
+                if (moveSpeed < originalMoveSpeed * 2.5f){
+                    moveSpeed += 20 * Time.deltaTime;
                 }
-                else
-                {
-                    moveSpeed = originalMoveSpeed;
-                }
-
-            }          
+            }
+            
             jump();
             //Invoke(() => { isJumpReady = true; }, jumpCooldown);
+        }
+        else if (isGrounded && (Time.time > timeTouchedGround + bunnyHopBuffer) && !crouchSpeedExtender)
+        {
+            moveSpeed = originalMoveSpeed;
         }
 
         if (Input.GetKeyDown(KeyCode.LeftControl)) {
             crouch();
+            if (!isCrounching) {
+                timeStartedCrouching = Time.time;
+                crouchSpeedExtender = true;
+            }
+
+            
             moveSpeed = moveSpeed * 1.5f;
             isCrounching = true;
+        }
+        if (Time.time > timeStartedCrouching + speedExtenderBuffer){ ;
+            crouchSpeedExtender = false;
         }
 
         if (Input.GetKeyUp(KeyCode.LeftControl))
@@ -157,7 +170,7 @@ public class PlayerMovement : MonoBehaviour
 
             rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z); //resets the y velocity to prevent force conflicts
 
-            rb.AddForce(transform.up * jumpSpeed, ForceMode.Impulse);
+        rb.velocity = new Vector3(rb.velocity.x, jumpSpeed, rb.velocity.z);
             justTouchedGround = false;
         
     }
