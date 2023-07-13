@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -11,6 +12,10 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float moveSpeed;
     [SerializeField] float jumpSpeed;
     [SerializeField] Transform orientation;
+    [SerializeField] float groundPoundSpeed;
+    [SerializeField] float airAcceleration;
+    [SerializeField] float dashSpeed;
+    [SerializeField] float dashDuration;
     //[SerializeField] float crouchSpeed;
     //[SerializeField] float jumpCooldown;
 
@@ -42,11 +47,17 @@ public class PlayerMovement : MonoBehaviour
     private bool crouchSpeedExtender = true; //to help with bunny hops extension
     private float speedExtenderBuffer = 1.5f;
 
+    //Dashing
+    private float originalDashSpeed;
+    private float originalDashDuration;
+    private float dashHeight;
+
     //booleans
     private bool isGrounded;
     //private bool isJumpReady;
     private bool isCrounching;
     private bool justTouchedGround = false;
+    private bool isDashing;
 
     void Start()
     {
@@ -70,7 +81,7 @@ public class PlayerMovement : MonoBehaviour
         verticalInput = Input.GetAxisRaw("Vertical");
 
         
-        if (Input.GetKey(KeyCode.Space) && isGrounded) {  //&& isJumpReady) {
+        if (Input.GetKey(KeyCode.Space) && isGrounded && !isCrounching) {  //&& isJumpReady) {
             
             if (Time.time < timeTouchedGround + bunnyHopBuffer){
                 if (moveSpeed < originalMoveSpeed * 2.5f){
@@ -107,6 +118,13 @@ public class PlayerMovement : MonoBehaviour
             transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
             isCrounching = false;
         }
+
+        if (Input.GetKeyDown(KeyCode.LeftControl) && !isGrounded) {
+            groundPound();
+        }
+        if (Input.GetKeyDown(KeyCode.LeftShift) || isDashing){
+            dash();
+        }
     }
 
     private void move() {
@@ -119,7 +137,7 @@ public class PlayerMovement : MonoBehaviour
             rb.AddForce(direction.normalized * moveSpeed, ForceMode.Force);
         }
         if (!isGrounded) {
-            rb.AddForce(direction.normalized * moveSpeed * 0.4f, ForceMode.Force);
+            rb.AddForce(direction.normalized * moveSpeed * airAcceleration, ForceMode.Force);
         }
         if (onSlope()) {
             rb.AddForce(getSlopeMoveDirection() * moveSpeed, ForceMode.Force);
@@ -192,4 +210,35 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 getSlopeMoveDirection() {
         return Vector3.ProjectOnPlane(direction, slopeHit.normal).normalized;
     }
+
+    private void groundPound() {
+        rb.AddForce(Vector3.down * groundPoundSpeed, ForceMode.Impulse);
+    }
+
+    private void dash() {
+        if (!isDashing) {
+            originalDashSpeed = dashSpeed;
+            originalDashDuration = dashDuration;
+            dashHeight = transform.position.y;
+        }
+        isDashing = true;
+        Vector3 dashOrientation = orientation.forward * dashSpeed + orientation.up * 0.075f; //the 0.05 is to help the player to not change Y while dashing
+        rb.AddForce(dashOrientation, ForceMode.Impulse);
+        Invoke(nameof(resetDash), dashDuration);
+    }
+    private void resetDash() {
+        if (dashSpeed > 0)
+        {
+            dashSpeed -= 10f * Time.deltaTime;
+            dashDuration = 0;
+        }
+        else
+        {
+            dashSpeed = originalDashSpeed;
+            dashDuration = originalDashDuration;
+            isDashing = false;
+        }
+        //dashSpeed /= 3;
+    }
+
 }
