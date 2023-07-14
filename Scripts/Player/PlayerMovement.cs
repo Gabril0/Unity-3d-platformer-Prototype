@@ -52,12 +52,29 @@ public class PlayerMovement : MonoBehaviour
     private float originalDashDuration;
     private float dashHeight;
 
+    //WallRun
+    [Header("WallRun")]
+    [SerializeField] LayerMask whatIsWall;
+    [SerializeField] float wallRunForce;
+    [SerializeField] float wallJumpUpForce;
+    [SerializeField] float wallJumpSideForce;
+    [SerializeField] float wallCheckDistance;
+    [SerializeField] float minJumpHeight;
+    [SerializeField] RaycastHit leftWallhit;
+    [SerializeField] RaycastHit rightWallhit;
+    private float exitWallTime = 0.2f;
+    private float exitWallTimer;
+    private bool exitingWall;
+    private bool wallLeft;
+    private bool wallRight;
+
     //booleans
     private bool isGrounded;
     //private bool isJumpReady;
     private bool isCrounching;
     private bool justTouchedGround = false;
     private bool isDashing;
+    private bool canDash = true;
 
     void Start()
     {
@@ -66,12 +83,15 @@ public class PlayerMovement : MonoBehaviour
         playerHeight = rb.transform.localScale.y*2;
         startYScale = transform.localScale.y;
         originalMoveSpeed = moveSpeed;
+        originalDashSpeed = dashSpeed;
+        originalDashDuration = dashDuration;
     }
 
     void Update()
     {
-        //Debug.Log(Time.time > timeStartedCrouching + speedExtenderBuffer);
+        //Debug.Log(rb.useGravity);
         groundCheck();
+        checkForWall();
         move();
         
     }
@@ -122,8 +142,28 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.LeftControl) && !isGrounded) {
             groundPound();
         }
-        if (Input.GetKeyDown(KeyCode.LeftShift) || isDashing){
+        if (Input.GetKeyDown(KeyCode.LeftShift) || isDashing && canDash){
             dash();
+        }
+
+        //WallRun
+        if (exitWallTimer > 0)
+        {
+            exitWallTimer -= Time.deltaTime;
+        }
+        if (exitWallTimer <= 0)
+        {
+            exitingWall = false;
+        }
+        if ((wallLeft || wallRight) && verticalInput > 0 && !isGrounded && !exitingWall) {
+            
+
+            if (!exitingWall){
+                wallRun();
+            }
+            if (Input.GetKey(KeyCode.Space)) {
+                wallJump();
+            }
         }
     }
 
@@ -160,6 +200,7 @@ public class PlayerMovement : MonoBehaviour
                 justTouchedGround = true;
             }
             rb.drag = groundDrag;
+            canDash = true;
             
         }
         else {
@@ -217,12 +258,13 @@ public class PlayerMovement : MonoBehaviour
 
     private void dash() {
         if (!isDashing) {
-            originalDashSpeed = dashSpeed;
-            originalDashDuration = dashDuration;
-            dashHeight = transform.position.y;
+            dashSpeed = originalDashSpeed;
+            dashDuration = originalDashDuration;
         }
+        rb.useGravity = false;
+        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
         isDashing = true;
-        Vector3 dashOrientation = orientation.forward * dashSpeed + orientation.up * 0.075f; //the 0.05 is to help the player to not change Y while dashing
+        Vector3 dashOrientation = orientation.forward * dashSpeed + orientation.up * 0;
         rb.AddForce(dashOrientation, ForceMode.Impulse);
         Invoke(nameof(resetDash), dashDuration);
     }
@@ -236,9 +278,46 @@ public class PlayerMovement : MonoBehaviour
         {
             dashSpeed = originalDashSpeed;
             dashDuration = originalDashDuration;
+            rb.useGravity = true;
             isDashing = false;
+            canDash = false;
         }
         //dashSpeed /= 3;
     }
 
+    private void checkForWall() {
+        wallRight = Physics.Raycast(transform.position, orientation.right, out rightWallhit, wallCheckDistance, whatIsWall);
+        wallLeft = Physics.Raycast(transform.position, -orientation.right, out leftWallhit, wallCheckDistance, whatIsWall) ;
+    }
+
+    private void wallRun() {
+        rb.useGravity = false;
+        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+
+        Vector3 wallNormal = wallRight ? rightWallhit.normal : leftWallhit.normal;
+
+        Vector3 wallForward = Vector3.Cross(wallNormal, transform.up);
+
+        if ((orientation.forward - wallForward).magnitude > (orientation.forward - -wallForward).magnitude) {
+            wallForward = - wallForward;
+        }
+
+        rb.AddForce(wallForward * wallRunForce, ForceMode.Force);
+
+        if (!(wallLeft && horizontalInput > 0) && !(wallRight && horizontalInput < 0))
+        {
+            rb.AddForce(-wallNormal * 100, ForceMode.Force);
+        }
+    }
+
+    private void wallJump() {
+        exitingWall = true;
+        exitWallTimer = exitWallTime;
+
+        Vector3 wallNormal = wallRight ? rightWallhit.normal : leftWallhit.normal;
+        Vector3 forceToApply = transform.up * wallJumpUpForce + wallNormal * wallJumpSideForce;
+
+        rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
+        rb.AddForce(forceToApply, ForceMode.Impulse);
+    }
 }
