@@ -68,6 +68,9 @@ public class PlayerMovement : MonoBehaviour
     private bool wallLeft;
     private bool wallRight;
 
+    //Jumping
+    private float originalJumpSpeed;
+
     //booleans
     private bool isGrounded;
     //private bool isJumpReady;
@@ -75,6 +78,9 @@ public class PlayerMovement : MonoBehaviour
     private bool justTouchedGround = false;
     private bool isDashing;
     private bool canDash = true;
+
+    //Lock
+    private bool groundPoundLock = false;
 
     void Start()
     {
@@ -92,6 +98,7 @@ public class PlayerMovement : MonoBehaviour
         //Debug.Log(rb.useGravity);
         groundCheck();
         checkForWall();
+        //ledgeGrab();
         move();
         
     }
@@ -140,10 +147,18 @@ public class PlayerMovement : MonoBehaviour
         }
 
         if (Input.GetKeyDown(KeyCode.LeftControl) && !isGrounded) {
-            groundPound();
+            if (!groundPoundLock) {
+                groundPound();    
+            }
         }
         if (Input.GetKeyDown(KeyCode.LeftShift) || isDashing && canDash){
-            dash();
+            if (isCrounching && isGrounded){
+                superJump();
+            }
+            else {
+                dash();
+            }
+            
         }
 
         //WallRun
@@ -198,9 +213,11 @@ public class PlayerMovement : MonoBehaviour
             if (!justTouchedGround){
                 timeTouchedGround = Time.time;
                 justTouchedGround = true;
+                
             }
             rb.drag = groundDrag;
             canDash = true;
+            groundPoundLock = false;
             
         }
         else {
@@ -227,7 +244,7 @@ public class PlayerMovement : MonoBehaviour
     }
     private void jump() {
 
-            rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z); //resets the y velocity to prevent force conflicts
+        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z); //resets the y velocity to prevent force conflicts
 
         rb.velocity = new Vector3(rb.velocity.x, jumpSpeed, rb.velocity.z);
             justTouchedGround = false;
@@ -235,9 +252,17 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private void crouch() {
-        transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
-        rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
-        rb.AddForce(direction * 1000, ForceMode.Force);
+        
+            RaycastHit hit;
+            float crouchHeight = playerHeight / 2f;
+
+            if (!Physics.Raycast(transform.position, Vector3.up, out hit, crouchHeight, groundLayer))
+            {
+                transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
+                rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
+                rb.AddForce(direction * 1000, ForceMode.Force);
+            }
+        
     }
 
     private bool onSlope() {
@@ -254,9 +279,14 @@ public class PlayerMovement : MonoBehaviour
 
     private void groundPound() {
         rb.AddForce(Vector3.down * groundPoundSpeed, ForceMode.Impulse);
+        groundPoundLock = true;
     }
 
     private void dash() {
+        if (isCrounching) {
+            isDashing = false;
+            return;
+        }
         if (!isDashing) {
             dashSpeed = originalDashSpeed;
             dashDuration = originalDashDuration;
@@ -320,4 +350,31 @@ public class PlayerMovement : MonoBehaviour
         rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
         rb.AddForce(forceToApply, ForceMode.Impulse);
     }
+
+    private void superJump() {
+        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z); //resets the y velocity to prevent force conflicts
+
+        rb.velocity = new Vector3(rb.velocity.x, jumpSpeed * 2, rb.velocity.z);
+        justTouchedGround = false;
+    }
+
+
+    //private void ledgeGrab()
+    //{
+    //    Vector3 forwardDirection = orientation.forward;
+    //    Vector3 upwardBody = transform.position + forwardDirection * playerHeight * 0.5f;
+    //    Vector3 lowerBody = transform.position + forwardDirection * playerHeight * 0.25f;
+
+    //    bool hitUpper = Physics.Raycast(upwardBody, forwardDirection, out RaycastHit upperHit, 1f, groundLayer);
+    //    bool hitLower = Physics.Raycast(lowerBody, forwardDirection, out RaycastHit lowerHit, 1f, groundLayer);
+
+    //    if (hitUpper && !hitLower && !isGrounded )
+    //    {
+    //        // Start ledge grab
+    //        Debug.Log("Ahoy!!");
+            
+    //        rb.AddForce(direction + Vector3.up * 80,ForceMode.Force);
+    //    }
+    //}
+
 }
