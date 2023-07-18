@@ -7,20 +7,24 @@ public class Floater : MonoBehaviour
     [SerializeField] float floatForce;
     [SerializeField] float duration;
     private MeshRenderer render;
+    private Rigidbody playerRb;
 
     void Start()
     {
         render = GetComponent<MeshRenderer>();
+        playerRb = GameObject.Find("Player").GetComponent<Rigidbody>();
     }
 
-    private void OnCollisionStay(Collision collision)
+    private void OnTriggerStay(Collider other)
     {
-        if (collision.collider.CompareTag("Player")) {
-            transform.position = collision.transform.position;
+        if (other.CompareTag("Player"))
+        {
+            transform.position = other.transform.position;
             render.enabled = false;
-            collision.rigidbody.velocity = new Vector3(collision.rigidbody.velocity.x, floatForce * Time.deltaTime, collision.rigidbody.velocity.z);
+            playerRb.velocity = new Vector3(playerRb.velocity.x, floatForce * Time.deltaTime, playerRb.velocity.z);
             Invoke("destroyObject", duration);
         }
     }
+
     private void destroyObject() { Destroy(gameObject); }
 }

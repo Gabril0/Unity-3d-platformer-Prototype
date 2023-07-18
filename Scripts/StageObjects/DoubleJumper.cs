@@ -7,18 +7,20 @@ public class DoubleJumper : MonoBehaviour
     [SerializeField] float jumpForce;
 
     private MeshRenderer render;
+    private Rigidbody playerRb;
 
     void Start()
     {
         render = GetComponent<MeshRenderer>();
+        playerRb = GameObject.Find("Player").GetComponent<Rigidbody>();
     }
 
-    private void OnCollisionStay(Collision collision)
+    private void OnTriggerStay(Collider other)
     {
-        if (collision.collider.CompareTag("Player"))
+        if (other.CompareTag("Player"))
         {
             render.enabled = false;
-            collision.rigidbody.velocity = new Vector3(collision.rigidbody.velocity.x, jumpForce * Time.deltaTime, collision.rigidbody.velocity.z);
+            playerRb.velocity = new Vector3(playerRb.velocity.x, jumpForce * Time.deltaTime, playerRb.velocity.z);
             Destroy(gameObject);
         }
     }
