@@ -294,7 +294,7 @@ public class PlayerMovement : MonoBehaviour
         rb.useGravity = false;
         rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
         isDashing = true;
-        Vector3 dashOrientation = orientation.forward * dashSpeed + orientation.up * 0;
+        Vector3 dashOrientation = orientation.forward * dashSpeed;
         rb.AddForce(dashOrientation, ForceMode.Impulse);
         Invoke(nameof(resetDash), dashDuration);
     }
