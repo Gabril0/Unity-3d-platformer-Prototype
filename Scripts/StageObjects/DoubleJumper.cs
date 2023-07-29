@@ -5,21 +5,27 @@ using UnityEngine;
 public class DoubleJumper : MonoBehaviour
 {
     [SerializeField] float jumpForce;
+    [SerializeField] float rotationAmount;
 
-    private MeshRenderer render;
+
     private Rigidbody playerRb;
 
     void Start()
     {
-        render = GetComponent<MeshRenderer>();
+
         playerRb = GameObject.Find("Player").GetComponent<Rigidbody>();
+    }
+
+    private void Update()
+    {
+        transform.Rotate(Vector3.up, rotationAmount);
     }
 
     private void OnTriggerStay(Collider other)
     {
         if (other.CompareTag("Player"))
         {
-            render.enabled = false;
+
             playerRb.velocity = new Vector3(playerRb.velocity.x, jumpForce * Time.deltaTime, playerRb.velocity.z);
             Destroy(gameObject);
         }
