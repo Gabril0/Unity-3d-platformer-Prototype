@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Collectable : MonoBehaviour
 {
-    [SerializeField] float rotationAmount;
+    [SerializeField] protected float rotationAmount;
 
 
     protected Rigidbody playerRb;

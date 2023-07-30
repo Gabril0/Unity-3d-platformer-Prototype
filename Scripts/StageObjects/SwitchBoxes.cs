@@ -9,14 +9,15 @@ public class SwitchBoxes : MonoBehaviour
 
     private float lastChange = 0;
     private BoxCollider boxCollider;
-    private MeshRenderer meshRenderer;
+    private GameObject onBox, offBox;
 
     private bool signal = true;
 
     private void Start()
     {
         boxCollider = GetComponent<BoxCollider>();
-        meshRenderer = GetComponent<MeshRenderer>();
+        onBox = transform.Find("On").gameObject;
+        offBox = transform.Find("Off").gameObject;
     }
 
     void FixedUpdate()
@@ -27,12 +28,14 @@ public class SwitchBoxes : MonoBehaviour
             if (!invertOrder)
             {
                 boxCollider.enabled = signal;
-                meshRenderer.enabled = signal;
+                onBox.SetActive(signal);
+                offBox.SetActive(!signal);
             }
             else
             {
                 boxCollider.enabled = !signal;
-                meshRenderer.enabled = !signal;
+                onBox.SetActive(!signal);
+                offBox.SetActive(signal);
             }
             
         }
