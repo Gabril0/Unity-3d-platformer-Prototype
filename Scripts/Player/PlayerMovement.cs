@@ -47,6 +47,7 @@ public class PlayerMovement : MonoBehaviour
     private float timeStartedCrouching;
     private bool crouchSpeedExtender = true; //to help with bunny hops extension
     private float speedExtenderBuffer = 1.5f;
+    private bool crouchExitBuffer = false;
 
     //Dashing
     private float originalDashSpeed;
@@ -135,21 +136,33 @@ public class PlayerMovement : MonoBehaviour
             if (!isCrounching) {
                 timeStartedCrouching = Time.time;
                 crouchSpeedExtender = true;
+                crouchExitBuffer = false;
             }
 
             
             moveSpeed = moveSpeed * 1.5f;
-            isCrounching = true;
+            
         }
         if (Time.time > timeStartedCrouching + speedExtenderBuffer){ ;
             crouchSpeedExtender = false;
         }
-
-        if (Input.GetKeyUp(KeyCode.LeftControl))
+        if (Input.GetKeyUp(KeyCode.LeftControl) && isCrounching)
         {
+            crouchExitBuffer = true;
+            if (isCrouchExitSafe())
+            {
+                moveSpeed = moveSpeed / 1.5f;
+                transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
+                isCrounching = false;
+                crouchExitBuffer = false;
+            }
+        }
+
+        if (crouchExitBuffer && isCrouchExitSafe() && isCrounching) { // to help player get up with buffer instead of crouching again
             moveSpeed = moveSpeed / 1.5f;
             transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
             isCrounching = false;
+            crouchExitBuffer = false;
         }
 
         if (Input.GetKeyDown(KeyCode.LeftControl) && !isGrounded) {
@@ -258,18 +271,19 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private void crouch() {
-        
-            RaycastHit hit;
-            float crouchHeight = playerHeight / 2f;
-
-        Debug.Log(!Physics.Raycast(transform.position, Vector3.up, out hit, playerHeight, groundLayer));
-            if (!Physics.Raycast(transform.position, Vector3.up, out hit, playerHeight, groundLayer))
+            if (isCrouchExitSafe())
             {
                 transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
                 rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
                 rb.AddForce(direction * 1000, ForceMode.Force);
-            }
-        
+                isCrounching = true;
+            }    
+    }
+    private bool isCrouchExitSafe() { //to prevent the player from getting stuck
+        RaycastHit hit;
+        float crouchHeight = playerHeight / 2f;
+
+        return !Physics.Raycast(transform.position, Vector3.up, out hit, crouchHeight, groundLayer);
     }
 
     private bool onSlope() {
@@ -365,25 +379,25 @@ public class PlayerMovement : MonoBehaviour
         justTouchedGround = false;
     }
 
-    private void OnDrawGizmos()
-    {
-        Vector3 raycastDirection = transform.TransformDirection(Vector3.up); // Cast ray in the up direction
-        RaycastHit hit;
-        float crouchHeight = playerHeight / 2f;
+    //private void OnDrawGizmos()
+    //{
+    //    Vector3 raycastDirection = transform.TransformDirection(Vector3.up); // Cast ray in the up direction
+    //    RaycastHit hit;
+    //    float crouchHeight = playerHeight / 2f;
 
-        if (Physics.Raycast(transform.position, raycastDirection, out hit, playerHeight, groundLayer))
-        {
-            // If the ray hits something, draw a red ray from the player's position to the hit point
-            Gizmos.color = Color.red;
-            Gizmos.DrawRay(transform.position, raycastDirection * hit.distance);
-        }
-        else
-        {
-            // If the ray doesn't hit anything, draw a green ray from the player's position in the up direction with length playerHeight
-            Gizmos.color = Color.green;
-            Gizmos.DrawRay(transform.position, raycastDirection * playerHeight);
-        }
-    }
+    //    if (Physics.Raycast(transform.position, raycastDirection, out hit, crouchHeight, groundLayer))
+    //    {
+    //        // If the ray hits something, draw a red ray from the player's position to the hit point
+    //        Gizmos.color = Color.red;
+    //        Gizmos.DrawRay(transform.position, raycastDirection * hit.distance);
+    //    }
+    //    else
+    //    {
+    //        // If the ray doesn't hit anything, draw a green ray from the player's position in the up direction with length playerHeight
+    //        Gizmos.color = Color.green;
+    //        Gizmos.DrawRay(transform.position, raycastDirection * playerHeight);
+    //    }
+    //}
 
 
     //private void ledgeGrab()
