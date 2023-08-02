@@ -7,13 +7,13 @@ public class TemporaryBlock : MonoBehaviour
     [SerializeField] float duration;
     [SerializeField] float respawnRate;
     private Collider objectCollider;
-    private Renderer objectRenderer;
+    private MeshRenderer model;
     private bool isDisabled = false;
 
     private void Start()
     {
         objectCollider = GetComponent<Collider>();
-        objectRenderer = GetComponent<Renderer>();
+        model = GetComponentInChildren<MeshRenderer>();
 
     }
     private void OnCollisionEnter(Collision collision)
@@ -29,7 +29,8 @@ public class TemporaryBlock : MonoBehaviour
     {
 
         objectCollider.enabled = false;
-        objectRenderer.enabled = false;
+        //model.SetActive(false);
+        model.enabled = false;
 
 
         Invoke("EnableAfterDelay", respawnRate);
@@ -39,7 +40,8 @@ public class TemporaryBlock : MonoBehaviour
     {
 
         objectCollider.enabled = true;
-        objectRenderer.enabled = true;
+        //model.SetActive(true);
+        model.enabled = true;
         isDisabled = false;
     }
 }

@@ -22,6 +22,7 @@ public class PlayerMovement : MonoBehaviour
     //base parameters needed
     private float horizontalInput, verticalInput;
     private Rigidbody rb;
+    private CapsuleCollider playerCollider;
 
     Vector3 direction;
 
@@ -82,15 +83,20 @@ public class PlayerMovement : MonoBehaviour
     //Lock
     private bool groundPoundLock = false;
 
+
     void Start()
     {
+        playerCollider = GetComponent<CapsuleCollider>();
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
-        playerHeight = rb.transform.localScale.y*2;
+        playerHeight = playerCollider.height;
         startYScale = transform.localScale.y;
         originalMoveSpeed = moveSpeed;
         originalDashSpeed = dashSpeed;
         originalDashDuration = dashDuration;
+
+        crouchYScale = playerHeight / 4f;
+
     }
 
     void Update()
@@ -256,7 +262,8 @@ public class PlayerMovement : MonoBehaviour
             RaycastHit hit;
             float crouchHeight = playerHeight / 2f;
 
-            if (!Physics.Raycast(transform.position, Vector3.up, out hit, crouchHeight, groundLayer))
+        Debug.Log(!Physics.Raycast(transform.position, Vector3.up, out hit, playerHeight, groundLayer));
+            if (!Physics.Raycast(transform.position, Vector3.up, out hit, playerHeight, groundLayer))
             {
                 transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
                 rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
@@ -358,6 +365,26 @@ public class PlayerMovement : MonoBehaviour
         justTouchedGround = false;
     }
 
+    private void OnDrawGizmos()
+    {
+        Vector3 raycastDirection = transform.TransformDirection(Vector3.up); // Cast ray in the up direction
+        RaycastHit hit;
+        float crouchHeight = playerHeight / 2f;
+
+        if (Physics.Raycast(transform.position, raycastDirection, out hit, playerHeight, groundLayer))
+        {
+            // If the ray hits something, draw a red ray from the player's position to the hit point
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(transform.position, raycastDirection * hit.distance);
+        }
+        else
+        {
+            // If the ray doesn't hit anything, draw a green ray from the player's position in the up direction with length playerHeight
+            Gizmos.color = Color.green;
+            Gizmos.DrawRay(transform.position, raycastDirection * playerHeight);
+        }
+    }
+
 
     //private void ledgeGrab()
     //{
@@ -372,7 +399,7 @@ public class PlayerMovement : MonoBehaviour
     //    {
     //        // Start ledge grab
     //        Debug.Log("Ahoy!!");
-            
+
     //        rb.AddForce(direction + Vector3.up * 80,ForceMode.Force);
     //    }
     //}
