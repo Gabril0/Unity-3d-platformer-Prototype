@@ -41,6 +41,7 @@ public class PlayerMovement : MonoBehaviour
     private float timeTouchedGround;
     private float originalMoveSpeed;
     private float bunnyHopBuffer = 0.5f;
+    [SerializeField] float bunnyHopSpeedMultiplier = 0.1f;
 
     //Crouch
     private float crouchYScale, startYScale;
@@ -80,6 +81,7 @@ public class PlayerMovement : MonoBehaviour
     private bool justTouchedGround = false;
     private bool isDashing;
     private bool canDash = true;
+    private bool isInInfinite = true;
 
     //Lock
     private bool groundPoundLock = false;
@@ -102,7 +104,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        //Debug.Log(rb.useGravity);
+        //Debug.Log(moveSpeed);
         groundCheck();
         checkForWall();
         //ledgeGrab();
@@ -118,8 +120,11 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKey(KeyCode.Space) && isGrounded && !isCrounching) {  //&& isJumpReady) {
             
             if (Time.time < timeTouchedGround + bunnyHopBuffer){
-                if (moveSpeed < originalMoveSpeed * 2.5f){
-                    moveSpeed += 20 * Time.deltaTime;
+                if ((moveSpeed < originalMoveSpeed * 2.5f) && !isInInfinite){
+                    moveSpeed += bunnyHopSpeedMultiplier;
+                }
+                if (isInInfinite) {
+                    moveSpeed += bunnyHopSpeedMultiplier;
                 }
             }
             
@@ -174,7 +179,11 @@ public class PlayerMovement : MonoBehaviour
             if (isCrounching && isGrounded){
                 superJump();
             }
-            else {
+            if (!canDash) {
+                return;
+            }
+            else
+            {
                 dash();
             }
             
@@ -362,14 +371,16 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private void wallJump() {
-        exitingWall = true;
-        exitWallTimer = exitWallTime;
+        if (!Input.GetKey(KeyCode.W)) {
+            exitingWall = true;
+            exitWallTimer = exitWallTime;
 
-        Vector3 wallNormal = wallRight ? rightWallhit.normal : leftWallhit.normal;
-        Vector3 forceToApply = transform.up * wallJumpUpForce + wallNormal * wallJumpSideForce;
+            Vector3 wallNormal = wallRight ? rightWallhit.normal : leftWallhit.normal;
+            Vector3 forceToApply = transform.up * wallJumpUpForce + wallNormal * wallJumpSideForce;
 
-        rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
-        rb.AddForce(forceToApply, ForceMode.Impulse);
+            rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
+            rb.AddForce(forceToApply, ForceMode.Impulse);
+        }
     }
 
     private void superJump() {
