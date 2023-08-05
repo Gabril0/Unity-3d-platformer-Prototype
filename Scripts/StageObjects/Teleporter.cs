@@ -11,6 +11,7 @@ public class Teleporter : MonoBehaviour
     [SerializeField] bool destinationTeleportRight, destinationTeleportLeft, destinationTeleportForward, destinationTeleportBackward;
     private Vector3 direction;
 
+
     // Update is called once per frame
     void Update()
     {
@@ -25,7 +26,7 @@ public class Teleporter : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.collider.CompareTag("Player") ) {
-
+            
             collision.transform.position = destination.transform.position + direction;
             destination.SetActive(false);
             collision.rigidbody.AddForce(direction * boostSpeed, ForceMode.Impulse);

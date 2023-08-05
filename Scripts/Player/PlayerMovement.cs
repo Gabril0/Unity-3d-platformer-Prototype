@@ -26,7 +26,7 @@ public class PlayerMovement : MonoBehaviour
 
     Vector3 direction;
 
-    
+
 
     //ground check parameters
     [SerializeField] float groundDrag;
@@ -40,7 +40,7 @@ public class PlayerMovement : MonoBehaviour
     //Bunny Hop
     private float timeTouchedGround;
     private float originalMoveSpeed;
-    private float bunnyHopBuffer = 0.5f;
+    [SerializeField] float bunnyHopBuffer = 1f;
     [SerializeField] float bunnyHopSpeedMultiplier = 0.1f;
 
     //Crouch
@@ -104,20 +104,20 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        //Debug.Log(moveSpeed);
+        Debug.Log(Time.time < timeTouchedGround + bunnyHopBuffer);
         groundCheck();
         checkForWall();
         //ledgeGrab();
         move();
-        
+
     }
 
     private void inputAssignor() { //make inputs checks and assign them to control variables
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
 
-        
-        if (Input.GetKey(KeyCode.Space) && isGrounded && !isCrounching) {  //&& isJumpReady) {
+
+        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyUp(KeyCode.Space)) && isGrounded && !isCrounching) {  //&& isJumpReady) {
             
             if (Time.time < timeTouchedGround + bunnyHopBuffer){
                 if ((moveSpeed < originalMoveSpeed * 2.5f) && !isInInfinite){
@@ -222,12 +222,12 @@ public class PlayerMovement : MonoBehaviour
         if (!isGrounded) {
             rb.AddForce(direction.normalized * moveSpeed * airAcceleration, ForceMode.Force);
         }
-        if (onSlope()) {
-            rb.AddForce(getSlopeMoveDirection() * moveSpeed, ForceMode.Force);
-            if (rb.velocity.y > 0) {
-                rb.AddForce(Vector3.down , ForceMode.Force);
-            }
-        }
+        //if (onSlope()) {
+        //    rb.AddForce(getSlopeMoveDirection() * moveSpeed, ForceMode.Force);
+        //    if (rb.velocity.y > 0) {
+        //        rb.AddForce(Vector3.down , ForceMode.Force);
+        //    }
+        //}
         
         rb.useGravity = !onSlope();
         speedLimiter();
@@ -255,20 +255,20 @@ public class PlayerMovement : MonoBehaviour
 
     private void speedLimiter(){
         Vector3 flatSpeed = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-        if (onSlope()){
-            if (rb.velocity.magnitude > moveSpeed){
-                rb.velocity = rb.velocity.normalized * moveSpeed;
-            }
-        }
-        else
-        {
+        //if (onSlope()){
+        //    if (rb.velocity.magnitude > moveSpeed){
+       //         rb.velocity = rb.velocity.normalized * moveSpeed;
+        //    }
+        //}
+        //else
+        //{
             if (flatSpeed.magnitude > moveSpeed)
             {
                 
                 Vector3 limitedSpeed = flatSpeed.normalized * moveSpeed;
                 rb.velocity = new Vector3(limitedSpeed.x, rb.velocity.y, limitedSpeed.z);
             }
-        }
+        //}
     }
     private void jump() {
 

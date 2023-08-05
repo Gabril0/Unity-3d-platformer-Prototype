@@ -7,13 +7,14 @@ using UnityEngine;
 public class PlayerCamera : MonoBehaviour
 {
     [SerializeField] float senseX = 10f, senseY = 10f;
-    [SerializeField] Transform orientation;
+    private Transform orientation;
     private float mouseX, mouseY; //to get mouse input
     private float rotationY, rotationX;
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        orientation = GameObject.Find("Orientation").GetComponent<Transform>();
     }
 
     void Update()

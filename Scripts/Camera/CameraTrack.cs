@@ -4,7 +4,11 @@ using UnityEngine;
 
 public class CameraTrack : MonoBehaviour
 {
-    public Transform cameraPosition;
+    private Transform cameraPosition;
+    private void Start()
+    {
+        cameraPosition = GameObject.Find("CameraPosition").GetComponent<Transform>();
+    }
     void Update()
     {
         transform.position = cameraPosition.position;
