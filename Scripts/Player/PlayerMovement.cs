@@ -40,6 +40,7 @@ public class PlayerMovement : MonoBehaviour
     //Bunny Hop
     private float timeTouchedGround;
     private float originalMoveSpeed;
+    private float timerToJump = 0f;
     [SerializeField] float bunnyHopBuffer = 1f;
     [SerializeField] float bunnyHopSpeedMultiplier = 0.1f;
 
@@ -104,7 +105,8 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        Debug.Log(Time.time < timeTouchedGround + bunnyHopBuffer);
+        //Debug.Log(timerToJump < bunnyHopBuffer);
+        Debug.Log(timerToJump + " " + bunnyHopBuffer);
         groundCheck();
         checkForWall();
         //ledgeGrab();
@@ -116,39 +118,72 @@ public class PlayerMovement : MonoBehaviour
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
 
+        bunnyHopInput();
+        crouchInput();
+        dashingInput();
+        wallRunningInput();
 
-        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyUp(KeyCode.Space)) && isGrounded && !isCrounching) {  //&& isJumpReady) {
-            
-            if (Time.time < timeTouchedGround + bunnyHopBuffer){
-                if ((moveSpeed < originalMoveSpeed * 2.5f) && !isInInfinite){
-                    moveSpeed += bunnyHopSpeedMultiplier;
-                }
-                if (isInInfinite) {
-                    moveSpeed += bunnyHopSpeedMultiplier;
-                }
-            }
-            
-            jump();
-            //Invoke(() => { isJumpReady = true; }, jumpCooldown);
-        }
-        else if (isGrounded && (Time.time > timeTouchedGround + bunnyHopBuffer) && !crouchSpeedExtender)
+        
+    }
+    private void dashingInput() {
+        if (Input.GetKeyDown(KeyCode.LeftShift) || isDashing && canDash)
         {
-            moveSpeed = originalMoveSpeed;
-        }
+            if (isCrounching && isGrounded)
+            {
+                superJump();
+            }
+            if (!canDash)
+            {
+                return;
+            }
+            else
+            {
+                dash();
+            }
 
-        if (Input.GetKeyDown(KeyCode.LeftControl)) {
+        }
+    }
+    private void wallRunningInput() {
+        if (exitWallTimer > 0)
+        {
+            exitWallTimer -= Time.deltaTime;
+        }
+        if (exitWallTimer <= 0)
+        {
+            exitingWall = false;
+        }
+        if ((wallLeft || wallRight) && verticalInput > 0 && !isGrounded && !exitingWall)
+        {
+
+
+            if (!exitingWall)
+            {
+                wallRun();
+            }
+            if (Input.GetKey(KeyCode.Space))
+            {
+                wallJump();
+            }
+        }
+    }
+    private void crouchInput() {
+        if (Input.GetKeyDown(KeyCode.LeftControl))
+        {
             crouch();
-            if (!isCrounching) {
+            if (!isCrounching)
+            {
                 timeStartedCrouching = Time.time;
                 crouchSpeedExtender = true;
                 crouchExitBuffer = false;
             }
 
-            
+
             moveSpeed = moveSpeed * 1.5f;
-            
+
         }
-        if (Time.time > timeStartedCrouching + speedExtenderBuffer){ ;
+        if (Time.time > timeStartedCrouching + speedExtenderBuffer)
+        {
+            ;
             crouchSpeedExtender = false;
         }
         if (Input.GetKeyUp(KeyCode.LeftControl) && isCrounching)
@@ -163,50 +198,52 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        if (crouchExitBuffer && isCrouchExitSafe() && isCrounching) { // to help player get up with buffer instead of crouching again
+        if (crouchExitBuffer && isCrouchExitSafe() && isCrounching)
+        { // to help player get up with buffer instead of crouching again
             moveSpeed = moveSpeed / 1.5f;
             transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
             isCrounching = false;
             crouchExitBuffer = false;
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftControl) && !isGrounded) {
-            if (!groundPoundLock) {
-                groundPound();    
-            }
-        }
-        if (Input.GetKeyDown(KeyCode.LeftShift) || isDashing && canDash){
-            if (isCrounching && isGrounded){
-                superJump();
-            }
-            if (!canDash) {
-                return;
-            }
-            else
+        if (Input.GetKeyDown(KeyCode.LeftControl) && !isGrounded)
+        {
+            if (!groundPoundLock)
             {
-                dash();
+                groundPound();
             }
-            
+        }
+    }
+    private void bunnyHopInput() {
+        if (isGrounded)
+        {
+            timerToJump += Time.deltaTime;
+        }
+        if (!isGrounded) {
+            timerToJump = 0;
         }
 
-        //WallRun
-        if (exitWallTimer > 0)
-        {
-            exitWallTimer -= Time.deltaTime;
-        }
-        if (exitWallTimer <= 0)
-        {
-            exitingWall = false;
-        }
-        if ((wallLeft || wallRight) && verticalInput > 0 && !isGrounded && !exitingWall) {
-            
+        if ((Input.GetKeyDown(KeyCode.Space) && isGrounded && !isCrounching))
+        {  //&& isJumpReady) {
 
-            if (!exitingWall){
-                wallRun();
+            if ((timerToJump < bunnyHopBuffer))
+            {
+                if ((moveSpeed < originalMoveSpeed * 2.5f) && !isInInfinite)
+                {
+                    moveSpeed += bunnyHopSpeedMultiplier;
+                }
+                if (isInInfinite)
+                {
+                    moveSpeed += bunnyHopSpeedMultiplier;
+                }
             }
-            if (Input.GetKey(KeyCode.Space)) {
-                wallJump();
-            }
+
+            jump();
+            //Invoke(() => { isJumpReady = true; }, jumpCooldown);
+        }
+        else if (isGrounded && (timerToJump > bunnyHopBuffer) && !crouchSpeedExtender)
+        {
+            moveSpeed = originalMoveSpeed;
         }
     }
 
