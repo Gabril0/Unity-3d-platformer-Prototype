@@ -14,7 +14,6 @@ public class CdScript : MonoBehaviour
     }
     void Update()
     {
-        Debug.Log(newRotation);
         newRotation = rotationForce * rotationMultiplier;
         speedCheck();
         //changeSpeed();
