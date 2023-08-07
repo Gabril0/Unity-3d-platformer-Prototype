@@ -1,9 +1,6 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
+
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -75,6 +72,10 @@ public class PlayerMovement : MonoBehaviour
     //Jumping
     private float originalJumpSpeed;
 
+    //UI
+    private Image jumpBar;
+    private Image dashBar;
+
     //booleans
     private bool isGrounded;
     //private bool isJumpReady;
@@ -90,6 +91,11 @@ public class PlayerMovement : MonoBehaviour
 
     void Start()
     {
+        //images
+        jumpBar = GameObject.Find("BunnyHopLight").GetComponent<Image>();
+        dashBar = GameObject.Find("DashLight").GetComponent<Image>();
+
+        //Physics and references
         playerCollider = GetComponent<CapsuleCollider>();
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
@@ -106,12 +112,12 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         //Debug.Log(timerToJump < bunnyHopBuffer);
-        Debug.Log(timerToJump + " " + bunnyHopBuffer);
+        //Debug.Log(timerToJump + " " + bunnyHopBuffer);
         groundCheck();
         checkForWall();
         //ledgeGrab();
         move();
-
+        runUI();
     }
 
     private void inputAssignor() { //make inputs checks and assign them to control variables
@@ -223,7 +229,7 @@ public class PlayerMovement : MonoBehaviour
             timerToJump = 0;
         }
 
-        if ((Input.GetKeyDown(KeyCode.Space) && isGrounded && !isCrounching))
+        if ((Input.GetKeyDown(KeyCode.Space) && isGrounded))
         {  //&& isJumpReady) {
 
             if ((timerToJump < bunnyHopBuffer))
@@ -426,6 +432,27 @@ public class PlayerMovement : MonoBehaviour
         rb.velocity = new Vector3(rb.velocity.x, jumpSpeed * 2, rb.velocity.z);
         justTouchedGround = false;
     }
+
+    private void runUI() {
+        jumpBarUI();
+        dashLightUI();
+    }
+    private void jumpBarUI() {
+        jumpBar.fillAmount = -timerToJump + bunnyHopBuffer/bunnyHopBuffer;
+    }
+
+    private void dashLightUI() {
+        if (canDash)
+        {
+            dashBar.enabled = true;
+        }
+        if(!canDash || isDashing) dashBar.enabled = false;
+    }
+
+    public float getMoveSpeed() {
+        return moveSpeed;
+    }
+
 
     //private void OnDrawGizmos()
     //{
