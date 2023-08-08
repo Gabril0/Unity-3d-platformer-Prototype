@@ -214,6 +214,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 20
   jumpSpeed: 10
+  superJumpCooldown: 2
   orientation: {fileID: 1834726245663586123}
   groundPoundSpeed: 150
   airAcceleration: 0.4

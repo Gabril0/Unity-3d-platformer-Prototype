@@ -14,10 +14,13 @@ public class CdScript : MonoBehaviour
     }
     void Update()
     {
-        newRotation = rotationForce * rotationMultiplier;
-        speedCheck();
-        //changeSpeed();
-        transform.Rotate(Vector3.forward, newRotation);
+        if (player.getIsAlive())
+        {
+            newRotation = rotationForce * rotationMultiplier;
+            speedCheck();
+            //changeSpeed();
+            transform.Rotate(Vector3.forward, newRotation);
+        }
     }
 
     private void speedCheck() {

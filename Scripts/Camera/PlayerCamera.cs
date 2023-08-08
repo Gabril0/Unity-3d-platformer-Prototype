@@ -10,27 +10,35 @@ public class PlayerCamera : MonoBehaviour
     private Transform orientation;
     private float mouseX, mouseY; //to get mouse input
     private float rotationY, rotationX;
+    private PlayerMovement player;
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         orientation = GameObject.Find("Orientation").GetComponent<Transform>();
+        player = GameObject.Find("Player").GetComponent<PlayerMovement>();
     }
 
     void Update()
     {
-        mouseX = Input.GetAxisRaw("Mouse X") * Time.deltaTime * senseX;
-        mouseY = -Input.GetAxisRaw("Mouse Y") * Time.deltaTime * senseY;
+        if (player.getIsAlive())
+        {
+            mouseX = Input.GetAxisRaw("Mouse X") * Time.deltaTime * senseX;
+            mouseY = -Input.GetAxisRaw("Mouse Y") * Time.deltaTime * senseY;
 
-        rotationY += mouseX;
-        rotationX += mouseY;
+            rotationY += mouseX;
+            rotationX += mouseY;
 
-        //clamping to prevent weird behaviour
-        rotationX = Mathf.Clamp(rotationX, -90f, 90f);
+            //clamping to prevent weird behaviour
+            rotationX = Mathf.Clamp(rotationX, -90f, 90f);
 
-        transform.rotation = Quaternion.Euler(rotationX, rotationY, 0);
-        orientation.rotation = Quaternion.Euler(0, rotationY, 0);
-
+            transform.rotation = Quaternion.Euler(rotationX, rotationY, 0);
+            orientation.rotation = Quaternion.Euler(0, rotationY, 0);
+        }
+        else {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
 
     }
 }

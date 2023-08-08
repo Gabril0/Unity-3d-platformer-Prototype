@@ -1,4 +1,5 @@
 
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,6 +9,7 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField] float moveSpeed;
     [SerializeField] float jumpSpeed;
+    [SerializeField] float superJumpCooldown;
     [SerializeField] Transform orientation;
     [SerializeField] float groundPoundSpeed;
     [SerializeField] float airAcceleration;
@@ -75,6 +77,9 @@ public class PlayerMovement : MonoBehaviour
     //UI
     private Image jumpBar;
     private Image dashBar;
+    private Image superJumpBar;
+
+    private float timeSinceSuperJump;
 
     //booleans
     private bool isGrounded;
@@ -84,6 +89,8 @@ public class PlayerMovement : MonoBehaviour
     private bool isDashing;
     private bool canDash = true;
     private bool isInInfinite = true;
+    private bool isAlive = true;
+    private bool canSuperJump = true;
 
     //Lock
     private bool groundPoundLock = false;
@@ -94,6 +101,7 @@ public class PlayerMovement : MonoBehaviour
         //images
         jumpBar = GameObject.Find("BunnyHopLight").GetComponent<Image>();
         dashBar = GameObject.Find("DashLight").GetComponent<Image>();
+        superJumpBar = GameObject.Find("Logo").GetComponent<Image>();
 
         //Physics and references
         playerCollider = GetComponent<CapsuleCollider>();
@@ -107,17 +115,25 @@ public class PlayerMovement : MonoBehaviour
 
         crouchYScale = playerHeight / 4f;
 
+        timeSinceSuperJump = superJumpCooldown;
+
     }
 
     void Update()
     {
-        //Debug.Log(timerToJump < bunnyHopBuffer);
-        //Debug.Log(timerToJump + " " + bunnyHopBuffer);
-        groundCheck();
-        checkForWall();
-        //ledgeGrab();
-        move();
-        runUI();
+        if (isAlive)
+        {
+           //Debug.Log((timeSinceSuperJump / superJumpCooldown));
+            //Debug.Log(timerToJump + " " + bunnyHopBuffer);
+            groundCheck();
+            checkForWall();
+            //ledgeGrab();
+            move();
+            runUI();
+        }
+        else {
+            deadBehaviour();
+        }
     }
 
     private void inputAssignor() { //make inputs checks and assign them to control variables
@@ -128,16 +144,31 @@ public class PlayerMovement : MonoBehaviour
         crouchInput();
         dashingInput();
         wallRunningInput();
+        superJumpInput();
 
         
     }
-    private void dashingInput() {
+
+    private void superJumpInput() {
+        if (Input.GetKeyDown(KeyCode.Mouse1) && canSuperJump)
+        {
+            isDashing = false;
+            superJump();
+            timeSinceSuperJump = 0;
+            canSuperJump = false;
+            Invoke("enableSuperJump", superJumpCooldown);
+        }
+        if (!canSuperJump) {
+            timeSinceSuperJump += Time.deltaTime;
+        }
+    }
+    private void enableSuperJump() {
+        canSuperJump = true;
+        timeSinceSuperJump = superJumpCooldown;
+    }
+private void dashingInput() {
         if (Input.GetKeyDown(KeyCode.LeftShift) || isDashing && canDash)
         {
-            if (isCrounching && isGrounded)
-            {
-                superJump();
-            }
             if (!canDash)
             {
                 return;
@@ -221,7 +252,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
     private void bunnyHopInput() {
-        if (isGrounded)
+        if (isGrounded && !isDashing)
         {
             timerToJump += Time.deltaTime;
         }
@@ -414,7 +445,6 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private void wallJump() {
-        if (!Input.GetKey(KeyCode.W)) {
             exitingWall = true;
             exitWallTimer = exitWallTime;
 
@@ -423,7 +453,7 @@ public class PlayerMovement : MonoBehaviour
 
             rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
             rb.AddForce(forceToApply, ForceMode.Impulse);
-        }
+        
     }
 
     private void superJump() {
@@ -436,6 +466,7 @@ public class PlayerMovement : MonoBehaviour
     private void runUI() {
         jumpBarUI();
         dashLightUI();
+        superJumpUI();
     }
     private void jumpBarUI() {
         jumpBar.fillAmount = -timerToJump + bunnyHopBuffer/bunnyHopBuffer;
@@ -449,10 +480,22 @@ public class PlayerMovement : MonoBehaviour
         if(!canDash || isDashing) dashBar.enabled = false;
     }
 
+    private void superJumpUI() {
+        superJumpBar.fillAmount = timeSinceSuperJump / superJumpCooldown;
+    }
+
     public float getMoveSpeed() {
         return moveSpeed;
     }
 
+    public void deadBehaviour() {
+        rb.constraints = RigidbodyConstraints.FreezeAll;
+    }
+    public void setIsAlive(bool isAlive) {
+        
+        this.isAlive = isAlive;
+    }
+    public bool getIsAlive() { return isAlive; }
 
     //private void OnDrawGizmos()
     //{

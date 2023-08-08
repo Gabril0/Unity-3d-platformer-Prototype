@@ -4,39 +4,42 @@ using UnityEngine;
 
 public class Goal : MonoBehaviour
 {
-    private float startTime;
-    private float endTime;
-    private bool showEndTime;
+    private float time = 0;
+    private bool beaten = false;
+    private PlayerMovement player;
 
     void Start()
     {
-        startTime = Time.time;
-        showEndTime = false;
+        player = GameObject.Find("Player").GetComponent<PlayerMovement>();
     }
-
+    private void Update()
+    {
+        if (!beaten && player.getIsAlive())
+        {
+            // Update the start time only if the goal hasn't been beaten yet
+            time += Time.deltaTime;
+        }
+    }
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.collider.CompareTag("Player"))
         {
-            endTime = Time.time;
-            showEndTime = true;
+            beaten = true;
         }
     }
-
-    void OnGUI()
+    public string getTimer()
     {
-        // Calculate the time difference between start and end
-        float timeDifference = showEndTime ? endTime - startTime : Time.time - startTime;
 
-        // Convert the time difference to a formatted string
-        string timeString = "Time: " + timeDifference.ToString("F2") + " seconds";
+        float elapsedTime =  time;
 
-        // Set up GUI style for the label
-        GUIStyle style = new GUIStyle();
-        style.fontSize = 24;
-        style.normal.textColor = Color.white;
+        int minutes = (int)((elapsedTime % 3600) / 60);
+        int seconds = (int)(elapsedTime % 60);
+        int milliseconds = (int)((elapsedTime % 1) * 1000);
 
-        // Display the time on the screen at position (10, 10)
-        GUI.Label(new Rect(10, 10, 300, 50), timeString, style);
+        string formattedTime = string.Format("{0:00}:{1:00}:{2:00}", minutes, seconds, milliseconds);
+        return formattedTime;
+    }
+    public bool isBeaten() {
+        return beaten;
     }
 }
