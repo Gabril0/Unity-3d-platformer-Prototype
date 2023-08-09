@@ -6,7 +6,7 @@ public class ResetScene : MonoBehaviour
     [SerializeField] string sceneName = "Stage1";
 
 
-    public void ResetTheScene() { 
+    public void ResetTheScene(string sceneName) { 
         SceneManager.LoadScene(sceneName);
     }
 }
