@@ -7,7 +7,9 @@ public class BuildingMaker : MonoBehaviour
     [SerializeField] Material sideTexture;
     [SerializeField] Material frontTexture;
     [SerializeField] Material upTexture;
+    [SerializeField] float tillingFrequence = 2;
     private Renderer planeTopRenderer, planeSide1Renderer, planeSide2Renderer, planeBackRenderer, planeFrontRenderer;
+    //private float minXY, minYZ, minXZ;
 
     private void Start()
     {
@@ -29,30 +31,49 @@ public class BuildingMaker : MonoBehaviour
     private void checkProportions()
     {
         bool isProportional = transform.localScale.x == transform.localScale.y && transform.localScale.x == transform.localScale.z;
-        float min = -727;
+        //float min = -727;
         //get the different one and do the cases
         if (!isProportional)
         {
-            if (minNumScale() != 0) min = minNumScale();
+            //if (minNumScale() != 0) min = minNumScale();
+            //numberAssignor();
+            planeTopRenderer.material.mainTextureScale = new Vector2(transform.localScale.x/tillingFrequence, transform.localScale.z/tillingFrequence); //top changes with X and Z proportions
             
-            planeTopRenderer.material.mainTextureScale = new Vector2(transform.localScale.x/min, transform.localScale.z/min); //top changes with X and Z proportions
-            
-            planeSide1Renderer.material.mainTextureScale = new Vector2(transform.localScale.x / min, transform.localScale.y / min); //sides only X and Y
+            planeSide1Renderer.material.mainTextureScale = new Vector2(transform.localScale.x / tillingFrequence, transform.localScale.y / tillingFrequence); //sides only X and Y
             planeSide2Renderer.material.mainTextureScale = planeSide1Renderer.material.mainTextureScale;
 
-            planeFrontRenderer.material.mainTextureScale = new Vector2(transform.localScale.z / min, transform.localScale.y / min); //front only Y and Z
+            planeFrontRenderer.material.mainTextureScale = new Vector2(transform.localScale.z / tillingFrequence, transform.localScale.y / tillingFrequence); //front only Y and Z
             planeBackRenderer.material.mainTextureScale = planeFrontRenderer.material.mainTextureScale;
         }
     }
+    //private void numberAssignor() {
+    //    float x = transform.localScale.x;
+    //    float y = transform.localScale.y;
+    //    float z = transform.localScale.z;
 
-    private float minNumScale() {
-        float x = transform.localScale.x;
-        float y = transform.localScale.y;
-        float z = transform.localScale.z;
+    //    if (x > z)
+    //    {
+    //        minXZ = x;
+    //    }
+    //    else minXZ = z;
+    //    if (y > z) {
+    //        minYZ = y;
+    //    }
+    //    else minYZ = z;
+    //    if (x > y) {
+    //        minXY = x;
+    //    }
+    //    else minXY = y;
 
-        if (x <= y && x <= z) return x;
-        if (y <= x && y <= z) return y;
-        if (z <= x && z <= y) return z;
-        else return 0;
-    }
+    //}
+    //private float minNumScale() {
+    //    float x = transform.localScale.x;
+    //    float y = transform.localScale.y;
+    //    float z = transform.localScale.z;
+
+    //    if (x <= y && x <= z) return x;
+    //    if (y <= x && y <= z) return y;
+    //    if (z <= x && z <= y) return z;
+    //    else return 0;
+    //}
 }
