@@ -133,7 +133,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4316293480284582918}
   m_LocalRotation: {x: 0, y: -0.7071068, z: 0.7071068, w: 0}
-  m_LocalPosition: {x: -0.001, y: 0, z: -0.493}
+  m_LocalPosition: {x: -0.001, y: -0, z: -0.5}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -224,7 +224,7 @@ GameObject:
   - component: {fileID: 7952730435317131676}
   - component: {fileID: 4665950869367769097}
   m_Layer: 6
-  m_Name: Building Model
+  m_Name: OLD Building Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -284,7 +284,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sideTexture: {fileID: 2100000, guid: 7b25df535f378944dafa019fcf6a4c67, type: 2}
-  frontTexture: {fileID: 2100000, guid: 9d3d7e385fa5529489e66b9f543e7a9a, type: 2}
+  frontTexture: {fileID: 2100000, guid: 7b25df535f378944dafa019fcf6a4c67, type: 2}
   upTexture: {fileID: 2100000, guid: 8d8ba4f795aa2234b8019995fb38cf7b, type: 2}
   tillingFrequence: 2
 --- !u!1 &7368131483011045626
